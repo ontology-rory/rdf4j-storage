@@ -57,7 +57,7 @@ import org.eclipse.rdf4j.sail.inferencer.InferencerConnection;
 
 /**
  * A {@link SailConnection} implementation that is based on an {@link SailStore} .
- * 
+ *
  * @author James Leigh
  */
 public abstract class SailSourceConnection extends NotifyingSailConnectionBase
@@ -149,7 +149,7 @@ public abstract class SailSourceConnection extends NotifyingSailConnectionBase
 
 	/**
 	 * Creates a new {@link SailConnection}, using the given {@link SailStore} to manage the state.
-	 * 
+	 *
 	 * @param sail
 	 * @param store
 	 * @param resolver the FederatedServiceResolver to use with the {@link StrictEvaluationStrategy default
@@ -183,7 +183,7 @@ public abstract class SailSourceConnection extends NotifyingSailConnectionBase
 
 	/**
 	 * Returns the {@link FederatedServiceResolver} being used.
-	 * 
+	 *
 	 * @return null if a custom {@link EvaluationStrategyFactory} is being used.
 	 */
 	public FederatedServiceResolver getFederatedServiceResolver() {
