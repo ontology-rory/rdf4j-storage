@@ -9,11 +9,13 @@ package org.eclipse.rdf4j.sail.base;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.eclipse.rdf4j.IsolationLevel;
 import org.eclipse.rdf4j.IsolationLevels;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.common.iteration.DistinctIteration;
+import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Namespace;
 import org.eclipse.rdf4j.model.Resource;
@@ -308,24 +310,11 @@ public abstract class SailSourceConnection extends NotifyingSailConnectionBase
 
 	@Override
 	protected long sizeInternal(Resource... contexts) throws SailException {
-		CloseableIteration<? extends Statement, SailException> iter = null;
-		try {
-			flush();
-			iter = new DistinctIteration<Statement, SailException>(
-					getStatementsInternal(null, null, null, false, contexts));
 
-			long size = 0L;
-
-			while (iter.hasNext()) {
-				iter.next();
-				size++;
-			}
-
-			return size;
-		} finally {
-			if (iter != null) {
-				iter.close();
-			}
+		flush();
+		try (Stream<? extends Statement> stream = Iterations
+				.stream(getStatementsInternal(null, null, null, false, contexts))) {
+			return stream.count();
 		}
 	}
 
