@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 
 public class TempTest {
 
-
 	private IRI PAINTER;
 
 	private IRI PAINTS;
@@ -92,9 +91,9 @@ public class TempTest {
 		a.add(GUERNICA, RDF.TYPE, PAINTING);
 		a.add(JACQUELINE, RDF.TYPE, PAINTING);
 		b.prepareUpdate(QueryLanguage.SPARQL,
-			"INSERT { ?painting a <Painting> }\n" + "WHERE { [a <Painter>] <paints> ?painting "
-				+ "OPTIONAL { ?painting a ?type  } FILTER (!bound(?type)) }",
-			NS).execute();
+				"INSERT { ?painting a <Painting> }\n" + "WHERE { [a <Painter>] <paints> ?painting "
+						+ "OPTIONAL { ?painting a ?type  } FILTER (!bound(?type)) }",
+				NS).execute();
 		a.commit();
 		assertEquals(5, size(b, null, RDF.TYPE, PAINTING, false));
 		b.commit();
@@ -103,9 +102,8 @@ public class TempTest {
 	}
 
 	private static int size(RepositoryConnection con, Resource subj, IRI pred, Value obj, boolean inf, Resource... ctx)
-		throws Exception {
+			throws Exception {
 		return QueryResults.asList(con.getStatements(subj, pred, obj, inf, ctx)).size();
 	}
-
 
 }

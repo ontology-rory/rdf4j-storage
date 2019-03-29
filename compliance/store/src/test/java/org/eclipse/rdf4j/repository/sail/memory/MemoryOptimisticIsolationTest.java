@@ -51,5 +51,4 @@ public class MemoryOptimisticIsolationTest extends OptimisticIsolationTest {
 		setRepositoryFactory(null);
 	}
 
-
 }

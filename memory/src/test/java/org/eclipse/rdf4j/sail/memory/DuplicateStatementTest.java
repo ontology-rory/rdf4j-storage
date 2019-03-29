@@ -45,7 +45,8 @@ public class DuplicateStatementTest {
 			connection.commit();
 			connection.begin();
 			connection.addStatement(RDF.SUBJECT, RDF.PREDICATE, RDF.OBJECT);
-			try (Stream<? extends Statement> stream = Iterations.stream(connection.getStatements(null, null, null, false))) {
+			try (Stream<? extends Statement> stream = Iterations
+					.stream(connection.getStatements(null, null, null, false))) {
 				long count = stream.count();
 				Assert.assertEquals("Statement should appear once", 1, count);
 			}
@@ -68,7 +69,8 @@ public class DuplicateStatementTest {
 			connection.begin();
 			connection.addStatement(RDF.SUBJECT, RDF.PREDICATE, RDF.OBJECT);
 			connection.commit();
-			try (Stream<? extends Statement> stream = Iterations.stream(connection.getStatements(null, null, null, false))) {
+			try (Stream<? extends Statement> stream = Iterations
+					.stream(connection.getStatements(null, null, null, false))) {
 				long count = stream.count();
 				Assert.assertEquals("Statement should appear once", 1, count);
 
@@ -96,6 +98,5 @@ public class DuplicateStatementTest {
 			Assert.assertEquals("Statement should appear once", 1, connection.size());
 		}
 	}
-
 
 }
