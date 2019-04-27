@@ -20,7 +20,7 @@ import java.util.List;
 public interface PlanGenerator {
 
 	PlanNode getPlan(ShaclSailConnection shaclSailConnection, NodeShape nodeShape, boolean printPlans,
-			PlanNodeProvider overrideTargetNode);
+			PlanNodeProvider overrideTargetNode, boolean negateThisPlan, boolean negateSubPlans);
 
 	PlanNode getPlanAddedStatements(ShaclSailConnection shaclSailConnection, NodeShape nodeShape,
 			PlaneNodeWrapper planeNodeWrapper);

@@ -46,7 +46,10 @@ public class TargetNode extends NodeShape {
 
 	@Override
 	public PlanNode getPlan(ShaclSailConnection shaclSailConnection, NodeShape nodeShape, boolean printPlans,
-			PlanNodeProvider overrideTargetNode) {
+			PlanNodeProvider overrideTargetNode, boolean negateThisPlan, boolean negateSubPlans) {
+		assert !negateSubPlans;
+		assert !negateThisPlan;
+
 		PlanNode parent = shaclSailConnection.getCachedNodeFor(new Select(shaclSailConnection,
 				getQuery("?a", "?c", shaclSailConnection.getRdfsSubClassOfReasoner()), "*"));
 		return new Unique(new TrimTuple(new LoggingNode(parent, ""), 0, 1));

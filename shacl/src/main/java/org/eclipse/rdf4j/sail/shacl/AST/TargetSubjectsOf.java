@@ -45,7 +45,10 @@ public class TargetSubjectsOf extends NodeShape {
 
 	@Override
 	public PlanNode getPlan(ShaclSailConnection connection, NodeShape nodeShape, boolean printPlans,
-			PlanNodeProvider overrideTargetNode) {
+			PlanNodeProvider overrideTargetNode, boolean negateThisPlan, boolean negateSubPlans) {
+		assert !negateSubPlans;
+		assert !negateThisPlan;
+
 		PlanNode parent = connection.getCachedNodeFor(new Select(connection, getQuery("?a", "?c", null), "*"));
 		return new TrimTuple(new LoggingNode(parent, ""), 0, 1);
 	}

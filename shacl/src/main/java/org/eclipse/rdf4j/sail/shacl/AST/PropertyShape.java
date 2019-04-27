@@ -53,7 +53,7 @@ public abstract class PropertyShape implements PlanGenerator, RequiresEvalutatio
 
 	@Override
 	public PlanNode getPlan(ShaclSailConnection shaclSailConnection, NodeShape nodeShape, boolean printPlans,
-			PlanNodeProvider overrideTargetNode) {
+			PlanNodeProvider overrideTargetNode, boolean negateThisPlan, boolean negateSubPlans) {
 		throw new IllegalStateException("Should never get here!!!");
 	}
 
@@ -239,6 +239,12 @@ public abstract class PropertyShape implements PlanGenerator, RequiresEvalutatio
 							shaclProperties.deactivated, parent, shaclProperties.path, and));
 				});
 			}
+			if (!shaclProperties.not.isEmpty()) {
+				shaclProperties.not.forEach(not -> {
+					propertyShapes.add(new NotPropertyShape(propertyShapeId, connection, nodeShape,
+							shaclProperties.deactivated, parent, shaclProperties.path, not));
+				});
+			}
 			if (shaclProperties.in != null) {
 				propertyShapes.add(new InPropertyShape(propertyShapeId, connection, nodeShape,
 						shaclProperties.deactivated, parent, shaclProperties.path, shaclProperties.in));
@@ -279,4 +285,5 @@ public abstract class PropertyShape implements PlanGenerator, RequiresEvalutatio
 		return Arrays.toString(collect.toArray());
 
 	}
+
 }

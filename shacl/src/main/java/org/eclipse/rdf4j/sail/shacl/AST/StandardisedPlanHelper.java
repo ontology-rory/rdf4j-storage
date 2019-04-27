@@ -27,7 +27,8 @@ public class StandardisedPlanHelper {
 	}
 
 	static public PlanNode getGenericSingleObjectPlan(ShaclSailConnection shaclSailConnection, NodeShape nodeShape,
-			FilterAttacher filterAttacher, PathPropertyShape pathPropertyShape, PlanNodeProvider overrideTargetNode) {
+			FilterAttacher filterAttacher, PathPropertyShape pathPropertyShape, PlanNodeProvider overrideTargetNode,
+			boolean negatePlan) {
 		if (overrideTargetNode != null) {
 
 			PlanNode planNode;
@@ -44,8 +45,13 @@ public class StandardisedPlanHelper {
 						"");
 			}
 
-			return new LoggingNode(filterAttacher.attachFilter(planNode).getFalseNode(UnBufferedPlanNode.class),
-					"AAAAAA");
+			if (negatePlan) {
+				return new LoggingNode(filterAttacher.attachFilter(planNode).getTrueNode(UnBufferedPlanNode.class), "");
+			} else {
+				return new LoggingNode(filterAttacher.attachFilter(planNode).getFalseNode(UnBufferedPlanNode.class),
+						"");
+			}
+
 		}
 
 		if (pathPropertyShape.getPath() == null) {
@@ -56,14 +62,27 @@ public class StandardisedPlanHelper {
 						return t;
 					});
 
-			return new LoggingNode(filterAttacher.attachFilter(targets).getFalseNode(UnBufferedPlanNode.class), "");
+			if (negatePlan) {
+				return new LoggingNode(filterAttacher.attachFilter(targets).getTrueNode(UnBufferedPlanNode.class), "");
+			} else {
+				return new LoggingNode(filterAttacher.attachFilter(targets).getFalseNode(UnBufferedPlanNode.class), "");
+			}
 
 		}
 
-		PlanNode invalidValuesDirectOnPath = new LoggingNode(
-				pathPropertyShape.getPlanAddedStatements(shaclSailConnection, nodeShape,
-						planNode -> filterAttacher.attachFilter(planNode).getFalseNode(UnBufferedPlanNode.class)),
-				"");
+		PlanNode invalidValuesDirectOnPath;
+
+		if (negatePlan) {
+			invalidValuesDirectOnPath = new LoggingNode(
+					pathPropertyShape.getPlanAddedStatements(shaclSailConnection, nodeShape,
+							planNode -> filterAttacher.attachFilter(planNode).getTrueNode(UnBufferedPlanNode.class)),
+					"");
+		} else {
+			invalidValuesDirectOnPath = new LoggingNode(
+					pathPropertyShape.getPlanAddedStatements(shaclSailConnection, nodeShape,
+							planNode -> filterAttacher.attachFilter(planNode).getFalseNode(UnBufferedPlanNode.class)),
+					"");
+		}
 
 		InnerJoin innerJoin = new InnerJoin(
 				new LoggingNode(nodeShape.getPlanAddedStatements(shaclSailConnection, nodeShape, null), ""),
@@ -89,7 +108,11 @@ public class StandardisedPlanHelper {
 
 			top = new LoggingNode(new UnionNode(top, bulkedExternalInnerJoin), "");
 
-			return new LoggingNode(filterAttacher.attachFilter(top).getFalseNode(UnBufferedPlanNode.class), "");
+			if (negatePlan) {
+				return new LoggingNode(filterAttacher.attachFilter(top).getTrueNode(UnBufferedPlanNode.class), "");
+			} else {
+				return new LoggingNode(filterAttacher.attachFilter(top).getFalseNode(UnBufferedPlanNode.class), "");
+			}
 
 		}
 

@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * The AST (Abstract Syntax Tree) node that represents the NodeShape node. NodeShape nodes can have multiple property
@@ -57,7 +56,7 @@ public class NodeShape implements PlanGenerator, RequiresEvalutation, QueryGener
 
 	@Override
 	public PlanNode getPlan(ShaclSailConnection shaclSailConnection, NodeShape nodeShape, boolean printPlans,
-			PlanNodeProvider overrideTargetNode) {
+			PlanNodeProvider overrideTargetNode, boolean negateThisPlan, boolean negateSubPlans) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -91,10 +90,11 @@ public class NodeShape implements PlanGenerator, RequiresEvalutation, QueryGener
 
 		if (validateEntireBaseSail) {
 			if (shaclSailConnection.sail.isCacheSelectNodes()) {
-				PlanNode overrideTargetNode = getPlan(shaclSailConnection, nodeShape, printPlans, null);
+				PlanNode overrideTargetNode = getPlan(shaclSailConnection, nodeShape, printPlans, null, false, false);
 				overrideTargetNodeBufferedSplitter = new BufferedSplitter(overrideTargetNode);
 			} else {
-				overrideTargetNodeBufferedSplitter = () -> getPlan(shaclSailConnection, nodeShape, printPlans, null);
+				overrideTargetNodeBufferedSplitter = () -> getPlan(shaclSailConnection, nodeShape, printPlans, null,
+						false, false);
 			}
 			addedStatements = shaclSailConnection;
 			removedStatements = shaclSailConnection;
@@ -123,7 +123,7 @@ public class NodeShape implements PlanGenerator, RequiresEvalutation, QueryGener
 				.stream()
 				.filter(propertyShape -> propertyShape.requiresEvaluation(addedStatements, removedStatements))
 				.map(propertyShape -> propertyShape.getPlan(shaclSailConnection, nodeShape, printPlans,
-						overrideTargetNodeBufferedSplitter));
+						overrideTargetNodeBufferedSplitter, false, false));
 	}
 
 	@Override

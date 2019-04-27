@@ -48,7 +48,7 @@ public class AndPropertyShape extends PathPropertyShape {
 
 	@Override
 	public PlanNode getPlan(ShaclSailConnection shaclSailConnection, NodeShape nodeShape, boolean printPlans,
-			PlanNodeProvider overrideTargetNode) {
+			PlanNodeProvider overrideTargetNode, boolean negateThisPlan, boolean negateSubPlans) {
 		if (deactivated) {
 			return null;
 		}
@@ -56,7 +56,8 @@ public class AndPropertyShape extends PathPropertyShape {
 		List<PlanNode> plans = and
 				.stream()
 				.flatMap(List::stream)
-				.map(shape -> shape.getPlan(shaclSailConnection, nodeShape, printPlans, overrideTargetNode))
+				.map(shape -> shape.getPlan(shaclSailConnection, nodeShape, printPlans, overrideTargetNode, false,
+						false))
 				.collect(Collectors.toList());
 
 		PlanNode unionPlan = unionAll(plans);

@@ -51,16 +51,24 @@ public class OrPropertyShape extends PathPropertyShape {
 
 	}
 
+	OrPropertyShape(Resource id, SailRepositoryConnection connection, NodeShape nodeShape, boolean deactivated,
+			PathPropertyShape parent, Resource path,
+			List<List<PathPropertyShape>> or) {
+		super(id, connection, nodeShape, deactivated, parent, path);
+		this.or = or;
+
+	}
+
 	@Override
 	public PlanNode getPlan(ShaclSailConnection shaclSailConnection, NodeShape nodeShape, boolean printPlans,
-			PlanNodeProvider overrideTargetNode) {
+			PlanNodeProvider overrideTargetNode, boolean negateThisPlan, boolean negateSubPlans) {
 		if (deactivated) {
 			return null;
 		}
 
 		List<List<PlanNode>> initialPlanNodes = or.stream()
 				.map(shapes -> shapes.stream()
-						.map(shape -> shape.getPlan(shaclSailConnection, nodeShape, false, null))
+						.map(shape -> shape.getPlan(shaclSailConnection, nodeShape, false, null, negateSubPlans, false))
 						.filter(Objects::nonNull)
 						.collect(Collectors.toList()))
 				.filter(list -> !list.isEmpty())
@@ -87,10 +95,11 @@ public class OrPropertyShape extends PathPropertyShape {
 						.stream()
 						.map(shape -> {
 							if (shaclSailConnection.stats.isBaseSailEmpty()) {
-								return shape.getPlan(shaclSailConnection, nodeShape, false, null);
+								return shape.getPlan(shaclSailConnection, nodeShape, false, null, negateSubPlans,
+										false);
 							}
-							return shape.getPlan(shaclSailConnection, nodeShape, false,
-									targetNodesToValidate);
+							return shape.getPlan(shaclSailConnection, nodeShape, false, targetNodesToValidate,
+									negateSubPlans, false);
 						})
 						.filter(Objects::nonNull)
 						.collect(Collectors.toList()))

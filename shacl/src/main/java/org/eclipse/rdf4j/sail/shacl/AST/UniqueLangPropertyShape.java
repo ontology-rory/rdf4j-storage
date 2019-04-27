@@ -8,8 +8,6 @@
 package org.eclipse.rdf4j.sail.shacl.AST;
 
 import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.sail.shacl.ShaclSailConnection;
 import org.eclipse.rdf4j.sail.shacl.SourceConstraintComponent;
@@ -36,7 +34,6 @@ public class UniqueLangPropertyShape extends PathPropertyShape {
 
 	private final boolean uniqueLang;
 	private static final Logger logger = LoggerFactory.getLogger(UniqueLangPropertyShape.class);
-	private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
 	UniqueLangPropertyShape(Resource id, SailRepositoryConnection connection, NodeShape nodeShape, boolean deactivated,
 			PathPropertyShape parent, Resource path,
@@ -50,10 +47,11 @@ public class UniqueLangPropertyShape extends PathPropertyShape {
 
 	@Override
 	public PlanNode getPlan(ShaclSailConnection shaclSailConnection, NodeShape nodeShape, boolean printPlans,
-			PlanNodeProvider overrideTargetNode) {
+			PlanNodeProvider overrideTargetNode, boolean negateThisPlan, boolean negateSubPlans) {
 		if (deactivated) {
 			return null;
 		}
+		assert !negateSubPlans;
 
 		if (overrideTargetNode != null) {
 			PlanNode relevantTargetsWithPath = new LoggingNode(
