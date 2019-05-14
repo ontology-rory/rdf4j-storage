@@ -30,84 +30,29 @@ import java.util.Set;
  */
 public class NonUniqueTargetLang implements PlanNode {
 	PlanNode parent;
+	Return returnType;
 	private boolean printed = false;
 
-	private Set<String> seenLanguages = new HashSet<>();
 
-	public NonUniqueTargetLang(PlanNode parent) {
+	public NonUniqueTargetLang(PlanNode parent, Return returnType) {
 		this.parent = parent;
+		this.returnType = returnType;
+	}
+
+	public enum Return {
+		onlyUnique, onlyNotUnique
 	}
 
 	@Override
 	public CloseableIteration<Tuple, SailException> iterator() {
-		return new CloseableIteration<Tuple, SailException>() {
 
-			CloseableIteration<Tuple, SailException> parentIterator = parent.iterator();
+		if (returnType == Return.onlyNotUnique) {
+			return new OnlyNonUnique(parent);
+		} else if (returnType == Return.onlyUnique){
+			return new OnlyNonUnique(parent);
+		}
 
-			Tuple next;
-			Tuple previous;
-
-			private void calculateNext() {
-				if (next != null) {
-					return;
-				}
-
-				while (next == null && parentIterator.hasNext()) {
-					next = parentIterator.next();
-
-					if ((previous != null)) {
-						if (!previous.line.get(0).equals(next.line.get(0))) {
-							seenLanguages = new HashSet<>();
-						}
-					}
-
-					previous = next;
-
-					Value value = next.getlist().get(1);
-
-					if (value instanceof Literal) {
-						Optional<String> lang = ((Literal) value).getLanguage();
-
-						if (!lang.isPresent()) {
-							next = null;
-						} else if (!seenLanguages.contains(lang.get())) {
-							seenLanguages.add(lang.get());
-							next = null;
-						}
-
-					} else {
-						next = null;
-					}
-
-				}
-
-			}
-
-			@Override
-			public void close() throws SailException {
-				parentIterator.close();
-			}
-
-			@Override
-			public boolean hasNext() throws SailException {
-				calculateNext();
-				return next != null;
-			}
-
-			@Override
-			public Tuple next() throws SailException {
-				calculateNext();
-
-				Tuple temp = next;
-				next = null;
-				return temp;
-			}
-
-			@Override
-			public void remove() throws SailException {
-
-			}
-		};
+		throw new IllegalStateException("Unknown return type: "+returnType);
 	}
 
 	@Override
@@ -122,7 +67,7 @@ public class NonUniqueTargetLang implements PlanNode {
 		}
 		printed = true;
 		stringBuilder.append(getId() + " [label=\"" + StringEscapeUtils.escapeJava(this.toString()) + "\"];")
-				.append("\n");
+			.append("\n");
 		stringBuilder.append(parent.getId() + " -> " + getId()).append("\n");
 		parent.getPlanAsGraphvizDot(stringBuilder);
 	}
@@ -142,4 +87,83 @@ public class NonUniqueTargetLang implements PlanNode {
 		return parent.getIteratorDataType();
 	}
 
+
+}
+
+
+class OnlyNonUnique implements CloseableIteration<Tuple, SailException> {
+
+	Tuple next;
+	Tuple previous;
+
+	private Set<String> seenLanguages = new HashSet<>();
+
+	CloseableIteration<Tuple, SailException> parentIterator;
+
+	public OnlyNonUnique(PlanNode parent) {
+		parentIterator = parent.iterator();
+	}
+
+	private void calculateNext() {
+		if (next != null) {
+			return;
+		}
+
+
+		while (next == null && parentIterator.hasNext()) {
+			next = parentIterator.next();
+
+			if ((previous != null)) {
+				if (!previous.line.get(0).equals(next.line.get(0))) {
+					seenLanguages = new HashSet<>();
+				}
+			}
+
+			previous = next;
+
+			Value value = next.getlist().get(1);
+
+			if (value instanceof Literal) {
+				Optional<String> lang = ((Literal) value).getLanguage();
+
+				if (!lang.isPresent()) {
+					next = null;
+				} else if (!seenLanguages.contains(lang.get())) {
+					seenLanguages.add(lang.get());
+					next = null;
+				}
+
+			} else {
+				next = null;
+			}
+
+		}
+
+	}
+
+
+	@Override
+	public void close() throws SailException {
+		parentIterator.close();
+	}
+
+	@Override
+	public boolean hasNext() throws SailException {
+		calculateNext();
+		return next != null;
+	}
+
+	@Override
+	public Tuple next() throws SailException {
+		calculateNext();
+
+		Tuple temp = next;
+		next = null;
+		return temp;
+	}
+
+	@Override
+	public void remove() throws SailException {
+
+	}
 }

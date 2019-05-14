@@ -53,13 +53,19 @@ public class UniqueLangPropertyShape extends PathPropertyShape {
 		}
 		assert !negateSubPlans;
 
+		NonUniqueTargetLang.Return returnType = NonUniqueTargetLang.Return.onlyNotUnique;
+		if(negateThisPlan){
+			returnType = NonUniqueTargetLang.Return.onlyUnique;
+		}
+
+
 		if (overrideTargetNode != null) {
 			PlanNode relevantTargetsWithPath = new LoggingNode(
 					new BulkedExternalInnerJoin(overrideTargetNode.getPlanNode(),
 							shaclSailConnection, getPath().getQuery("?a", "?c", null), false),
 					"");
 
-			PlanNode planNode = new NonUniqueTargetLang(relevantTargetsWithPath);
+			PlanNode planNode = new NonUniqueTargetLang(relevantTargetsWithPath, returnType);
 
 			if (printPlans) {
 				String planAsGraphvizDot = getPlanAsGraphvizDot(planNode, shaclSailConnection);
@@ -80,7 +86,7 @@ public class UniqueLangPropertyShape extends PathPropertyShape {
 			PlanNode innerJoin = new LoggingNode(
 					new InnerJoin(addedTargets, addedByPath).getJoined(UnBufferedPlanNode.class), "");
 
-			PlanNode planNode = new NonUniqueTargetLang(innerJoin);
+			PlanNode planNode = new NonUniqueTargetLang(innerJoin, returnType);
 
 			if (printPlans) {
 				String planAsGraphvizDot = getPlanAsGraphvizDot(planNode, shaclSailConnection);
@@ -109,7 +115,7 @@ public class UniqueLangPropertyShape extends PathPropertyShape {
 						getPath().getQuery("?a", "?c", null), false),
 				"");
 
-		PlanNode planNode = new NonUniqueTargetLang(relevantTargetsWithPath);
+		PlanNode planNode = new NonUniqueTargetLang(relevantTargetsWithPath, returnType);
 
 		if (printPlans) {
 			String planAsGraphvizDot = getPlanAsGraphvizDot(planNode, shaclSailConnection);
