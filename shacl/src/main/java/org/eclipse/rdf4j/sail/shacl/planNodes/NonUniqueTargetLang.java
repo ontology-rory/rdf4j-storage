@@ -13,7 +13,10 @@ import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.sail.SailException;
+import org.eclipse.rdf4j.sail.shacl.CloseablePeakableIteration;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -48,11 +51,11 @@ public class NonUniqueTargetLang implements PlanNode {
 
 		if (returnType == Return.onlyNotUnique) {
 			return new OnlyNonUnique(parent);
-		} else if (returnType == Return.onlyUnique){
-			return new OnlyNonUnique(parent);
+		} else if (returnType == Return.onlyUnique) {
+			return new OnlyUnique(parent);
 		}
 
-		throw new IllegalStateException("Unknown return type: "+returnType);
+		throw new IllegalStateException("Unknown return type: " + returnType);
 	}
 
 	@Override
@@ -160,6 +163,122 @@ class OnlyNonUnique implements CloseableIteration<Tuple, SailException> {
 		Tuple temp = next;
 		next = null;
 		return temp;
+	}
+
+	@Override
+	public void remove() throws SailException {
+
+	}
+}
+
+class OnlyUnique implements CloseableIteration<Tuple, SailException> {
+
+	Deque<Tuple> nextQueue = new ArrayDeque<>();
+
+	private Set<String> seenLanguages = new HashSet<>();
+	private Set<String> seenLanguagesTwice = new HashSet<>();
+
+
+	CloseablePeakableIteration<Tuple, SailException> parentIterator;
+
+	public OnlyUnique(PlanNode parent) {
+		parentIterator = new CloseablePeakableIteration<>(parent.iterator());
+	}
+
+	private void calculateNext() {
+		if (!nextQueue.isEmpty()) {
+			return;
+		}
+
+
+		while (true) {
+
+			Tuple peek = null;
+			if (parentIterator.hasNext()) {
+				peek = parentIterator.peek();
+			}
+
+			if (nextQueue.isEmpty() && peek == null) {
+				break;
+			}
+
+
+			if ((nextQueue.peekLast() != null)) {
+				if (peek == null || !nextQueue.peekLast().line.get(0).equals(peek.line.get(0))) {
+					Deque<Tuple> temp = new ArrayDeque<>();
+
+					nextQueue.stream()
+						.filter(next -> {
+							Value value = next.getlist().get(1);
+							if (value instanceof Literal) {
+								Optional<String> language = ((Literal) value).getLanguage();
+								if (language.isPresent()) {
+									return !seenLanguagesTwice.contains(language.get());
+								}
+							}
+
+							return true;
+						})
+						.forEach(temp::addLast);
+
+					nextQueue = temp;
+
+					seenLanguages = new HashSet<>();
+					seenLanguagesTwice = new HashSet<>();
+
+					if (!nextQueue.isEmpty()) {
+						break;
+					}
+
+				}
+			}
+
+			if (peek == null) {
+				break;
+			}
+
+			Tuple next = parentIterator.next();
+			nextQueue.addLast(next);
+
+
+			Value value = next.getlist().get(1);
+
+			if (value instanceof Literal) {
+				Optional<String> lang = ((Literal) value).getLanguage();
+
+				if (lang.isPresent()) {
+
+					String language = lang.get();
+					boolean langSeenBefore = seenLanguages.contains(language);
+					if (langSeenBefore) {
+						seenLanguagesTwice.add(language);
+					} else {
+						seenLanguages.add(language);
+					}
+
+				}
+			}
+
+		}
+
+	}
+
+
+	@Override
+	public void close() throws SailException {
+		parentIterator.close();
+	}
+
+	@Override
+	public boolean hasNext() throws SailException {
+		calculateNext();
+		return !nextQueue.isEmpty();
+	}
+
+	@Override
+	public Tuple next() throws SailException {
+		calculateNext();
+		return nextQueue.removeFirst();
 	}
 
 	@Override
